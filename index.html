@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finish Line Flashback</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Finish Line Flashback</h1>
+        <div class="game-container">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="sequence-container">
+                <div class="race-track">
+                    <div class="finish-line"></div>
+                    <div id="sequence" class="saddle-pad"></div>
+                    <div id="countdown" class="countdown">
+                        <div class="countdown-number"></div>
+                        <div class="countdown-text"></div>
+                    </div>
+                </div>
+                <div class="input-container">
+                    <input type="number" id="userGuess" placeholder="Next number?" min="1" max="10">
+                    <button id="submitGuess">Submit</button>
+                </div>
+            </div>
+            <div id="message"></div>
+            <button id="newGame">Start</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 

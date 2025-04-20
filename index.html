@@ -3,7 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
     <title>Finish Line Flashback</title>
+    <meta name="title" content="Finish Line Flashback">
+    <meta name="description" content="Test your memory with this exciting sequence game! Watch the numbers race across the screen and try to remember the sequence.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com/">
+    <meta property="og:title" content="Finish Line Flashback">
+    <meta property="og:description" content="Test your memory with this exciting sequence game! Watch the numbers race across the screen and try to remember the sequence.">
+    <meta property="og:image" content="https://yourdomain.com/images/social-preview.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yourdomain.com/">
+    <meta property="twitter:title" content="Finish Line Flashback">
+    <meta property="twitter:description" content="Test your memory with this exciting sequence game! Watch the numbers race across the screen and try to remember the sequence.">
+    <meta property="twitter:image" content="https://yourdomain.com/images/social-preview.jpg">
+    
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#ffffff">
+    <meta name="author" content="Your Name">
+    <meta name="keywords" content="memory game, sequence game, brain training, flashback game">
+    
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -20,13 +44,28 @@
                         <div class="countdown-text"></div>
                     </div>
                 </div>
+                <div class="guess-container"></div>
                 <div class="input-container">
-                    <input type="number" id="userGuess" placeholder="Next number?" min="1" max="10">
-                    <button id="submitGuess">Submit</button>
+                    <button id="newGame" class="start-button">Start</button>
+                    <div class="number-grid">
+                        <button class="number-btn" data-number="1">1</button>
+                        <button class="number-btn" data-number="2">2</button>
+                        <button class="number-btn" data-number="3">3</button>
+                        <button class="number-btn" data-number="4">4</button>
+                        <button class="number-btn" data-number="5">5</button>
+                        <button class="number-btn" data-number="6">6</button>
+                        <button class="number-btn" data-number="7">7</button>
+                        <button class="number-btn" data-number="8">8</button>
+                        <button class="number-btn" data-number="9">9</button>
+                        <button class="number-btn" data-number="10">10</button>
+                    </div>
+                    <div class="action-buttons hidden">
+                        <button id="clearGuess">Clear</button>
+                        <button id="submitGuess">Submit</button>
+                    </div>
                 </div>
             </div>
-            <div id="message"></div>
-            <button id="newGame">Start</button>
+            <div id="message" class="hidden"></div>
         </div>
     </div>
     <script src="script.js"></script>

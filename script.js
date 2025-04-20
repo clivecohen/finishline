@@ -6,21 +6,30 @@ class SequenceGame {
         this.isShowingSequence = false;
         this.isAnimating = false;
         this.lastUpdateCheck = null;
+        this.currentGuess = null;
+        this.guessSequence = []; // Array to store complete sequence of guesses
+        this.guessedNumbers = new Set(); // Track which numbers have been guessed
 
         // DOM Elements
         this.sequenceElement = document.getElementById('sequence');
         this.scoreElement = document.getElementById('score');
         this.messageElement = document.getElementById('message');
-        this.guessInput = document.getElementById('userGuess');
         this.submitButton = document.getElementById('submitGuess');
+        this.clearButton = document.getElementById('clearGuess');
         this.newGameButton = document.getElementById('newGame');
         this.countdownElement = document.getElementById('countdown');
+        this.numberButtons = document.querySelectorAll('.number-btn');
+        this.actionButtons = document.querySelector('.action-buttons');
+        this.guessContainer = document.querySelector('.guess-container');
 
         // Event Listeners
-        this.submitButton.addEventListener('click', () => this.checkGuess());
+        this.submitButton.addEventListener('click', () => this.submitCompleteSequence());
+        this.clearButton.addEventListener('click', () => this.clearGuess());
         this.newGameButton.addEventListener('click', () => this.startNewGame());
-        this.guessInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.checkGuess();
+        
+        // Add click handlers for number buttons
+        this.numberButtons.forEach(button => {
+            button.addEventListener('click', () => this.selectNumber(button));
         });
 
         // Animation end listener
@@ -32,6 +41,46 @@ class SequenceGame {
         // Initialize game state
         this.disableGameControls();
         this.loadSequence();
+    }
+
+    selectNumber(button) {
+        if (this.isShowingSequence || this.isAnimating) return;
+        
+        const number = parseInt(button.getAttribute('data-number'));
+        
+        // Check if number was already guessed
+        if (this.guessedNumbers.has(number)) {
+            this.showMessage('You already picked this number!', false);
+            return;
+        }
+        
+        // Remove selected class from all buttons
+        this.numberButtons.forEach(btn => btn.classList.remove('selected'));
+        
+        // Add selected class to clicked button
+        button.classList.add('selected');
+        
+        // Store the selected number
+        this.currentGuess = number;
+        
+        // Show action buttons when a number is selected
+        this.actionButtons.classList.remove('hidden');
+    }
+
+    clearGuess() {
+        this.currentGuess = null;
+        this.numberButtons.forEach(btn => btn.classList.remove('selected'));
+        this.actionButtons.classList.add('hidden');
+    }
+
+    disableGameControls() {
+        this.numberButtons.forEach(btn => btn.disabled = true);
+        this.actionButtons.classList.add('hidden');
+    }
+
+    enableGameControls() {
+        this.numberButtons.forEach(btn => btn.disabled = false);
+        this.actionButtons.classList.add('hidden');
     }
 
     async loadSequence() {
@@ -139,33 +188,17 @@ class SequenceGame {
         this.countdownElement.classList.remove('visible');
     }
 
-    disableGameControls() {
-        this.guessInput.disabled = true;
-        this.submitButton.disabled = true;
-    }
-
-    enableGameControls() {
-        this.guessInput.disabled = false;
-        this.submitButton.disabled = false;
-        this.guessInput.focus();
-    }
-
     async displayNumber(number, animate = false) {
-        return new Promise(async (resolve) => {
-            this.sequenceElement.textContent = number;
-            this.sequenceElement.setAttribute('data-number', number);
-            this.sequenceElement.classList.remove('question-mark');
-            
-            if (animate) {
-                this.isAnimating = true;
-                this.sequenceElement.classList.add('racing');
-                // Wait for animation to complete
-                await new Promise(r => setTimeout(r, 1200));
-                resolve();
-            } else {
-                resolve();
-            }
-        });
+        this.sequenceElement.textContent = number;
+        this.sequenceElement.setAttribute('data-number', number);
+        this.sequenceElement.classList.remove('question-mark');
+        
+        if (animate) {
+            this.isAnimating = true;
+            this.sequenceElement.classList.add('racing');
+            await new Promise(resolve => setTimeout(resolve, 1200));
+            this.isAnimating = false;
+        }
     }
 
     displayQuestionMark() {
@@ -177,10 +210,11 @@ class SequenceGame {
     async showSequence() {
         this.isShowingSequence = true;
         this.disableGameControls();
-        this.newGameButton.disabled = true;
+        this.newGameButton.classList.add('hidden');
         
         // Clear any previous content
         this.sequenceElement.textContent = '';
+        this.sequenceElement.classList.remove('question-mark');
         this.clearMessage();
 
         // Start with countdown
@@ -195,11 +229,94 @@ class SequenceGame {
 
         // Ready for guessing
         this.displayQuestionMark();
-        this.showMessage('Now guess each number in sequence!', true);
+        this.showMessage('Pick the winner', true);
         this.enableGameControls();
-        this.newGameButton.disabled = false;
         this.isShowingSequence = false;
         this.currentPosition = 0;
+    }
+
+    showPositionMessage() {
+        const positions = ['winner', '2nd place', '3rd place', '4th place', '5th place', 
+                         '6th place', '7th place', '8th place', '9th place', '10th place'];
+        this.showMessage(`Pick the ${positions[this.currentPosition]}`, true);
+    }
+
+    async submitCompleteSequence() {
+        if (this.isShowingSequence || this.isAnimating) return;
+        
+        if (!this.currentGuess) {
+            this.showMessage('Please select a number!', false);
+            return;
+        }
+
+        // Add current guess to sequence
+        this.guessSequence.push(this.currentGuess);
+        this.guessedNumbers.add(this.currentGuess);
+
+        // Disable the selected number button
+        const selectedButton = document.querySelector(`.number-btn[data-number="${this.currentGuess}"]`);
+        if (selectedButton) {
+            selectedButton.classList.add('disabled');
+            
+            // Get button position
+            const rect = selectedButton.getBoundingClientRect();
+            const containerRect = this.guessContainer.getBoundingClientRect();
+            
+            // Create and animate the guessed number
+            const guessedNumber = document.createElement('div');
+            guessedNumber.className = 'guessed-number';
+            guessedNumber.textContent = this.currentGuess;
+            guessedNumber.setAttribute('data-number', this.currentGuess);
+            guessedNumber.style.setProperty('--start-x', `${rect.left - containerRect.left}px`);
+            guessedNumber.style.setProperty('--start-y', `${rect.top - containerRect.top}px`);
+            guessedNumber.style.setProperty('--position', this.guessSequence.length);
+            this.guessContainer.appendChild(guessedNumber);
+
+            // Animate the number
+            await new Promise(resolve => {
+                guessedNumber.addEventListener('animationend', resolve, { once: true });
+            });
+        }
+
+        // Clear current guess and update UI
+        this.clearGuess();
+        
+        // If we have all 10 guesses, check the sequence
+        if (this.guessSequence.length === 10) {
+            await this.checkCompleteSequence();
+        } else {
+            this.showMessage(`Pick horse #${this.guessSequence.length + 1}`, true);
+        }
+    }
+
+    async checkCompleteSequence() {
+        let score = 0;
+        const results = [];
+        
+        // Check each position
+        for (let i = 0; i < this.sequence.length; i++) {
+            if (this.guessSequence[i] === this.sequence[i]) {
+                score += 10;
+                results.push({ correct: true, position: i });
+            } else {
+                results.push({ correct: false, position: i });
+            }
+        }
+
+        // Update score
+        this.score += score;
+        this.scoreElement.textContent = this.score;
+
+        // Show results
+        if (score === 100) {
+            this.showMessage('Perfect! You got all positions correct!', true);
+        } else {
+            this.showMessage(`You scored ${score} points!`, true);
+        }
+
+        // Disable controls and show start button
+        this.disableGameControls();
+        this.newGameButton.classList.remove('hidden');
     }
 
     async startNewGame() {
@@ -212,7 +329,20 @@ class SequenceGame {
         this.score = 0;
         this.scoreElement.textContent = '0';
         this.currentPosition = 0;
-        this.guessInput.value = '';
+        this.guessSequence = [];
+        this.guessedNumbers.clear();
+        this.clearGuess();
+        this.clearMessage();
+        
+        // Clear guess container and sequence
+        this.guessContainer.innerHTML = '';
+        this.sequenceElement.textContent = '';
+        this.sequenceElement.classList.remove('question-mark');
+        
+        // Re-enable all number buttons
+        this.numberButtons.forEach(button => {
+            button.classList.remove('disabled');
+        });
         
         // Start showing sequence
         await this.showSequence();
@@ -221,50 +351,12 @@ class SequenceGame {
     showMessage(text, isSuccess) {
         this.messageElement.textContent = text;
         this.messageElement.className = isSuccess ? 'success' : 'error';
+        this.messageElement.classList.remove('hidden');
     }
 
     clearMessage() {
         this.messageElement.textContent = '';
-        this.messageElement.className = '';
-    }
-
-    async checkGuess() {
-        if (this.isShowingSequence || this.isAnimating) return;
-        
-        const guess = parseInt(this.guessInput.value);
-        
-        if (isNaN(guess) || guess < 1 || guess > 10) {
-            this.showMessage('Please enter a valid number between 1 and 10!', false);
-            return;
-        }
-
-        if (guess === this.sequence[this.currentPosition]) {
-            this.currentPosition++;
-            this.updateScore(1);
-            
-            // Show the correct number racing across
-            await this.displayNumber(guess, true);
-            
-            if (this.currentPosition >= this.sequence.length) {
-                this.showMessage('Congratulations! You remembered the entire sequence!', true);
-                this.disableGameControls();
-            } else {
-                this.displayQuestionMark();
-                this.showMessage(`Correct! ${10 - this.currentPosition} numbers remaining`, true);
-            }
-            
-            this.guessInput.value = '';
-        } else {
-            this.showMessage(`Wrong! Try again! You need number ${this.currentPosition + 1} in the sequence`, false);
-            this.updateScore(-1);
-        }
-        
-        this.guessInput.focus();
-    }
-
-    updateScore(increment) {
-        this.score += increment;
-        this.scoreElement.textContent = this.score;
+        this.messageElement.className = 'hidden';
     }
 }
 
